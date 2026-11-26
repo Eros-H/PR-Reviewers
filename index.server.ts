@@ -1,5 +1,5 @@
 import type { PluginServerContext, PluginHandlerContext } from '@getpaseo/plugin/server';
-import { loadReviewers, requestReviewers } from './shared/reviewers';
+import { loadCandidates, loadStatus, requestReviewers } from './shared/reviewers';
 import { github } from './server/github';
 
 async function workspaceGithub(id: string, context: PluginHandlerContext) {
@@ -9,7 +9,8 @@ async function workspaceGithub(id: string, context: PluginHandlerContext) {
   return github(workspace.directory);
 }
 export default function contribute(server: PluginServerContext) {
-  server.handle(loadReviewers, async (input, context) => (await workspaceGithub(input.workspaceId, context)).load());
+  server.handle(loadStatus, async (input, context) => (await workspaceGithub(input.workspaceId, context)).status());
+  server.handle(loadCandidates, async (input, context) => (await workspaceGithub(input.workspaceId, context)).candidates());
   server.handle(requestReviewers, async (input, context) => (await workspaceGithub(input.workspaceId, context)).request(input));
   return () => {};
 }
