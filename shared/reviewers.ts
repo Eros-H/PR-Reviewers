@@ -5,7 +5,9 @@ export const person = z.object({ login: z.string() });
 export const team = z.object({ slug: z.string(), name: z.string() });
 export const requested = z.object({ users: z.array(person), teams: z.array(team) });
 export const pull = z.object({ number: z.number(), title: z.string(), url: z.string(), state: z.string(), isDraft: z.boolean(), author: person });
-export const snapshot = z.object({ account: z.string(), pull, requested, people: z.array(person), teams: z.array(team), warnings: z.array(z.string()) });
+/** A reviewer's latest submitted review. GitHub drops a reviewer from requested_reviewers once they submit one. */
+export const review = z.object({ login: z.string(), state: z.string() });
+export const snapshot = z.object({ account: z.string(), pull, requested, reviews: z.array(review), people: z.array(person), teams: z.array(team), warnings: z.array(z.string()) });
 const workspace = z.object({ workspaceId: z.string().min(1) });
 export const loadReviewers = defineRpc({ name: 'reviewers.load', input: workspace, output: snapshot });
 export const requestReviewers = defineRpc({ name: 'reviewers.request', input: workspace.extend({

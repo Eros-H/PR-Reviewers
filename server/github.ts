@@ -25,12 +25,13 @@ export function target(url: string) {
 export function github(cwd: string, run: Run = runGh) {
   const api = (endpoint: string, body?: unknown) => run(['api', '--hostname', 'github.com', endpoint, ...(body ? ['--method', 'POST', '--input', '-'] : [])], cwd, body);
   const pages = async (endpoint: string) => z.array(z.array(z.unknown())).parse(await run(['api', '--hostname', 'github.com', endpoint + '?per_page=100', '--paginate', '--slurp'], cwd)).flat();
-  const current = async () => pull.parse(await run(['pr', 'view', '--json', 'number,title,url,state,isDraft,author'], cwd));
+  const current = async () => pull.extend({ latestReviews: z.array(z.object({ author: person, state: z.string() })) })
+    .parse(await run(['pr', 'view', '--json', 'number,title,url,state,isDraft,author,latestReviews'], cwd));
   const account = async () => person.parse(await api('user')).login;
   const read = async (url: string, number: number) => requested.parse(await api(`${target(url)}/pulls/${number}/requested_reviewers`));
   return {
     async load() {
-      const pr = await current();
+      const { latestReviews, ...pr } = await current();
       const repo = target(pr.url);
       const warnings: string[] = [];
       const [login, requests, people, teams] = await Promise.all([
@@ -38,7 +39,8 @@ export function github(cwd: string, run: Run = runGh) {
         pages(`${repo}/collaborators`).then(x => z.array(person).parse(x)).catch(() => { warnings.push('People unavailable. Check GitHub connectivity and repository collaborator permissions, then refresh.'); return []; }),
         pages(`${repo}/teams`).then(x => z.array(team).parse(x)).catch(() => { warnings.push('Teams unavailable. Check GitHub connectivity and organization team permissions, then refresh.'); return []; }),
       ]);
-      return { account: login, pull: pr, requested: requests, people: people.filter(p => p.login.toLowerCase() !== pr.author.login.toLowerCase()), teams, warnings };
+      const reviews = latestReviews.filter(r => r.state !== 'PENDING').map(r => ({ login: r.author.login, state: r.state }));
+      return { account: login, pull: pr, requested: requests, reviews, people: people.filter(p => p.login.toLowerCase() !== pr.author.login.toLowerCase()), teams, warnings };
     },
     async request(input: { pullUrl: string; account: string; users: string[]; teams: string[] }) {
       const pr = await current();
