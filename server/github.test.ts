@@ -2,7 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { github, target, type Run } from './github';
 
-const pr = { number: 1, title: 'Example', url: 'https://github.com/example/repo/pull/1', state: 'OPEN', isDraft: false, author: { login: 'author' } };
+const pr = { number: 1, title: 'Example', url: 'https://github.com/example/repo/pull/1', state: 'OPEN', isDraft: false, author: { login: 'author' },
+  latestReviews: [{ author: { login: 'reviewer' }, state: 'COMMENTED' }, { author: { login: 'owner' }, state: 'PENDING' }] };
 function fixture(options: { missing?: boolean; draft?: boolean; changed?: boolean; failTeams?: boolean } = {}) {
   let posted = false;
   const writes: unknown[] = [];
@@ -25,6 +26,12 @@ test('loads every page and excludes the PR author', async () => {
   const result = await fixture().api.load();
   assert.deepEqual(result.people, [{ login: 'reviewer' }]);
   assert.equal(result.account, 'owner');
+});
+test('reports a submitted review that GitHub no longer lists as requested', async () => {
+  const result = await fixture().api.load();
+  assert.deepEqual(result.requested.users, []);
+  assert.deepEqual(result.reviews, [{ login: 'reviewer', state: 'COMMENTED' }]);
+  assert.equal('latestReviews' in result.pull, false);
 });
 test('optional team permission failure is visible while people remain usable', async () => {
   const result = await fixture({ failTeams: true }).api.load();
