@@ -2,6 +2,10 @@
   "id": "paseo-pr-reviewers",
   "name": "PR Reviewers",
   "description": "Request GitHub pull request reviews from a Paseo workspace panel.",
+  "icon": "assets/icon.png",
+  "media": [
+    "assets/screenshot.png"
+  ],
   "requirements": {
     "paseo": ">=0.16.1 <0.19.0"
   }
