@@ -1,4 +1,4 @@
-# Paseo . PR Reviewers
+# PR Reviewers
 
 An independently maintained Paseo plugin for requesting GitHub pull request reviews. Open **Reviewers** from a workspace's panel picker, alongside Paseo's PR panel. It shows the branch's pull request, its review decision and the active GitHub account. Like GitHub's reviewer sidebar, a collapsible **Reviewers** section lists each reviewer with their avatar and state (awaiting, approved, changes requested, commented), and a re-request button for submitted reviews; under **Request review**, select people or teams and send the request. Success appears only after a separate GitHub read confirms the selection. The panel updates by itself: review state every 30 seconds and when the window regains focus, everything when the workspace branch changes.
 
