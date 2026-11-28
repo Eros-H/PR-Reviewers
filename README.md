@@ -4,7 +4,7 @@ An independently maintained Paseo plugin for requesting GitHub pull request revi
 
 ## Setup
 
-Requires Paseo 0.16.1 through 0.17.x (daemon and client), Node.js, Git, and the GitHub CLI (`gh`) on the daemon host. Authenticate there with `gh auth login`. The plugin uses that host's active account, including any `GH_TOKEN` override; it does not use the account signed into your browser.
+Requires Paseo 0.16.1 through 0.18.x (daemon and client), Node.js, Git, and the GitHub CLI (`gh`) on the daemon host. Authenticate there with `gh auth login`. The plugin uses that host's active account, including any `GH_TOKEN` override; it does not use the account signed into your browser.
 
 The account needs access to the repository and permission to request reviews. Fine-grained tokens need Pull requests read/write; listing collaborators can require additional repository access and listing teams can require organization access. GitHub remains the authority on eligible reviewers. Missing list permissions are shown in the panel.
 
