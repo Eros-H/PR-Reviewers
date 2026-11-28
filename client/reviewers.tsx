@@ -77,9 +77,10 @@ function Panel({ workspaceId, theme, branch }: PluginWorkspacePanelProps & { bra
   const [reviewersOpen, setReviewersOpen] = useState(true);
   const [requestOpen, setRequestOpen] = useState(true);
   const statusQuery = useQuery({ queryKey: ['pr-reviewers', 'status', workspaceId, branch], queryFn: () => loadState({ workspaceId }), refetchInterval: STATUS_POLL_MS });
-  const candidatesQuery = useQuery({ queryKey: ['pr-reviewers', 'candidates', workspaceId, branch], queryFn: () => loadPeople({ workspaceId }), staleTime: CANDIDATES_STALE_MS });
+  const candidatesQuery = useQuery({ queryKey: ['pr-reviewers', 'candidates', workspaceId, branch], queryFn: () => loadPeople({ workspaceId }), enabled: Boolean(statusQuery.data), staleTime: CANDIDATES_STALE_MS });
   const data = statusQuery.data;
   const pool = candidatesQuery.data;
+  const noPullRequest = Boolean(statusQuery.error && /no pull requests? found/i.test(statusQuery.error.message));
   const mutation = useMutation({
     mutationFn: request,
     onSuccess: async (_result, input) => {
@@ -135,7 +136,12 @@ function Panel({ workspaceId, theme, branch }: PluginWorkspacePanelProps & { bra
 
   return <ScrollView style={{ flex: 1, backgroundColor: colors.surface0 }} contentContainerStyle={{ paddingVertical: 8 }}>
     {statusQuery.isLoading && <View style={[row, { justifyContent: 'center', paddingVertical: 16 }]}><ActivityIndicator size="small" color={colors.foregroundMuted} /><Text style={muted}>Loading reviewers…</Text></View>}
-    {statusQuery.error && <Text accessibilityRole="alert" style={notice}>{statusQuery.error.message}</Text>}
+    {noPullRequest && <View style={{ alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20, paddingVertical: 32, gap: 8 }}>
+      <Icon name="GitPullRequest" size={20} color={colors.foregroundMuted} />
+      <Text style={[text, { fontWeight: '500', textAlign: 'center' }]}>No pull request for this branch</Text>
+      <Text style={[muted, { textAlign: 'center' }]}>Reviewers will appear here automatically once a pull request is opened.</Text>
+    </View>}
+    {statusQuery.error && !noPullRequest && <Text accessibilityRole="alert" style={notice}>{statusQuery.error.message}</Text>}
     {data && <>
       <Pressable accessibilityRole="link" onPress={() => void openExternal(data.pull.url)} style={{ paddingHorizontal: 12, paddingTop: 4, paddingBottom: 10, gap: 6 }}>
         <Text style={[text, { fontSize: 15, fontWeight: '600' }]}>{data.pull.title} <Text style={{ color: colors.foregroundMuted, fontWeight: '400' }}>#{data.pull.number}</Text></Text>

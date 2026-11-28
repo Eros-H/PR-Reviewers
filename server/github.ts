@@ -2,11 +2,17 @@ import { execFile } from 'node:child_process';
 import { pull, requested, person, team } from '../shared/reviewers';
 import { z } from 'zod';
 
+export const NO_PULL_REQUEST_MESSAGE = 'No pull request found for this branch.';
+
 export type Run = (args: string[], cwd: string, body?: unknown) => Promise<unknown>;
 const runGh: Run = (args, cwd, body) => new Promise((resolve, reject) => {
   const child = execFile('gh', args, { cwd, timeout: 30000, maxBuffer: 8 * 1024 * 1024,
-    env: { ...process.env, GH_PROMPT_DISABLED: '1' } }, (error, stdout) => {
+    env: { ...process.env, GH_PROMPT_DISABLED: '1' } }, (error, stdout, stderr) => {
     if (error) {
+      if (typeof stderr === 'string' && /no pull requests? found/i.test(stderr)) {
+        reject(new Error(NO_PULL_REQUEST_MESSAGE));
+        return;
+      }
       const code = typeof error.code === 'number' ? `exit ${error.code}` : error.code === 'ENOENT' ? 'gh missing' : error.killed ? 'timeout' : 'command failed';
       reject(new Error(`GitHub command failed (${code}). Check gh installation, authentication, repository access, and that this branch has a pull request on the Paseo host.`));
       return;
