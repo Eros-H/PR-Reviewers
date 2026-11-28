@@ -19,7 +19,7 @@
     "test": "tsx --test server/*.test.ts"
   },
   "devDependencies": {
-    "@getpaseo/plugin": "0.17.5",
+    "@getpaseo/plugin": "0.18.1",
     "@tanstack/react-query": "^5.90.11",
     "@types/react": "~19.2.0",
     "react": "19.1.0",
